@@ -1,0 +1,3 @@
+name: UDB
+main: com.gmail.jython234.udb.UDBPlugin
+version: 1.0-SNAPSHOT

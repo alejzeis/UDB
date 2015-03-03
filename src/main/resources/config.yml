@@ -1,0 +1,13 @@
+#UDB Config File
+
+#Lives options
+lives:
+  #Ban time is in hours.
+  #Use this equation: t = (w*24)
+  #336 Hours = 2 Weeks.
+  #NOTE: Set to 0 for a perma-ban, and -1 for no ban.
+  banTime: 336
+
+  #Amount of lives a player is given when they first join
+  firstLives: 3
+

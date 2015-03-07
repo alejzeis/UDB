@@ -1,3 +1,30 @@
 name: UDB
 main: com.gmail.jython234.udb.UDBPlugin
 version: 1.0-SNAPSHOT
+
+commands:
+  udb:
+    description: This is the root command for UDB.
+    usage: /udb [operation]
+    permission: udb.udb
+    permission-message: "You don't have the permission udb.udb"
+
+permissions:
+  udb.*:
+    description: Gives access to all UDB commands and features.
+    children:
+      udb.udb: true
+      udb.setlives: true
+      udb.bypass: true
+
+  udb.udb:
+    description: Allows you to use the root UDB command.
+    default: true
+
+  udb.setlives:
+    description: Allows you to set other player's lives.
+    default: op
+
+  udb.bypass:
+    description: Allows you to bypass UDB bans (even if banning is enabled).
+    default: false

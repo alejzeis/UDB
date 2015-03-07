@@ -15,7 +15,7 @@ import java.io.IOException;
  * UDB Plugin Main class.
  */
 public class UDBPlugin extends JavaPlugin{
-    public final static String VERSION = "1.0-SNAPSHOT";
+    public final static String VERSION = "1.0-BETA_BUILD";
     private int tempBanTime; //Temp ban time is in hours
     private int startLives; //Amount of lives new players start with.
 

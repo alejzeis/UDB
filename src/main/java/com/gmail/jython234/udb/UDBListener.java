@@ -105,7 +105,7 @@ public class UDBListener implements Listener{
                     } else if(plugin.getTempBanTime() < 0){
                         data.setBanned(false);
                         data.setBanTime(-1);
-                        plugin.sendMessage(player, "Banning on this server has been disabled. Your lucky this time...");
+                        plugin.sendMessage(player, "Banning on this server has been disabled. You're lucky this time...");
                     } else {
                         player.kickPlayer("You have run out of lives! Ban time on this server is: "+plugin.getTempBanTime()+" hours.");
                         plugin.getServer().broadcastMessage(ChatColor.GOLD+"["+ChatColor.AQUA+"UDB"+ChatColor.GOLD+"] "+ChatColor.YELLOW+player.getDisplayName()+" has been banned due to 0 lives!");

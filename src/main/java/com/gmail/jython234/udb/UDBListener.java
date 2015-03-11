@@ -34,15 +34,18 @@ public class UDBListener implements Listener{
             PlayerDatabase.PlayerData playerData = plugin.getPlayerDatabase().getDataByUUID(player.getUniqueId().toString());
             if(playerData.isBanned()){
                 long elapsed = System.currentTimeMillis() - playerData.getBanTime();
-                int hours = (((int) (elapsed / 1000)) / 60) / 60;
-                if(hours >= plugin.getTempBanTime()){
+                int minutes = (((int) (elapsed / 1000)) / 60);
+                if(minutes >= plugin.getTempBanTime()){
                     playerData.setBanned(false);
                     playerData.setLives(1);
                     playerData.setSurvivalRecord(Long.toString(System.currentTimeMillis()));
                     playerData.setBanTime(-1);
                 } else {
-                    int difference = plugin.getTempBanTime() - hours;
-                    e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Your UDB ban is not over yet. You still have: "+difference+" hour(s) to go!");
+                    int difference = plugin.getTempBanTime() - minutes;
+                    int hourDiff = difference / 60;
+                    int minDiff = difference - (hourDiff * 60);
+                    String diff = hourDiff +" hours, "+minDiff+" minutes.";
+                    e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Your UDB ban is not over yet. You still have: "+difference);
                 }
             }
         }
@@ -105,7 +108,7 @@ public class UDBListener implements Listener{
                     } else if(plugin.getTempBanTime() < 0){
                         data.setBanned(false);
                         data.setBanTime(-1);
-                        plugin.sendMessage(player, "Banning on this server has been disabled. Your lucky this time...");
+                        plugin.sendMessage(player, "Banning on this server has been disabled. You're lucky this time...");
                     } else {
                         player.kickPlayer("You have run out of lives! Ban time on this server is: "+plugin.getTempBanTime()+" hours.");
                         plugin.getServer().broadcastMessage(ChatColor.GOLD+"["+ChatColor.AQUA+"UDB"+ChatColor.GOLD+"] "+ChatColor.YELLOW+player.getDisplayName()+" has been banned due to 0 lives!");

@@ -28,3 +28,11 @@ permissions:
   udb.bypass:
     description: Allows you to bypass UDB bans (even if banning is enabled).
     default: false
+
+  udb.db.save:
+    description: Allows you to save the UDB database.
+    default: op
+
+  udb.db.reload:
+    description: Allows you to re-load the UDB database (discards recent changes).
+    default: op

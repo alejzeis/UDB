@@ -2,8 +2,10 @@
 
 #Lives options
 lives:
-  #Ban time is in hours.
-  #Use this equation: t = (w*24)
+  #Can be hours or minutes
+  banTimeType: hours
+
+  #Ban time is either hours or minutes (look above).
   #336 Hours = 2 Weeks.
   #NOTE: Set to 0 for a perma-ban, and -1 for no ban.
   banTime: 336

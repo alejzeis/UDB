@@ -1,11 +1,14 @@
 package com.gmail.jython234.udb;
 
 import com.gmail.jython234.udb.io.PlayerDatabase;
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -16,10 +19,12 @@ import java.io.IOException;
  */
 public class UDBPlugin extends JavaPlugin{
     public final static String VERSION = "1.0-BETA_BUILD";
-    private int tempBanTime; //Temp ban time is in hours
+    private int tempBanTime; //Temp ban time is in minutes
     private int startLives; //Amount of lives new players start with.
 
     private PlayerDatabase db;
+    private Economy economy = null;
+    private Chat chat = null;
 
     @Override
     public void onEnable(){
@@ -30,6 +35,7 @@ public class UDBPlugin extends JavaPlugin{
             e.printStackTrace();
             getServer().getPluginManager().disablePlugin(this);
         }
+        linkVault();
         try {
             loadData();
         } catch (IOException e) {
@@ -41,10 +47,30 @@ public class UDBPlugin extends JavaPlugin{
         getLogger().info("UDB Enabled!");
     }
 
+    private void linkVault() {
+        if(getServer().getPluginManager().getPlugin("Vault") != null){
+            getLogger().info("Vault found, linking...");
+            RegisteredServiceProvider<Economy> econRSP = getServer().getServicesManager().getRegistration(Economy.class);
+            RegisteredServiceProvider<Chat> chatRSP = getServer().getServicesManager().getRegistration(Chat.class);
+            economy = econRSP.getProvider();
+            chat = chatRSP.getProvider();
+            getLogger().info("Link complete, all economy and chat support is now enabled.");
+        } else {
+            getLogger().warning("Vault was not found. All economy and chat support will be disabled.");
+        }
+    }
+
     private void loadSettings() {
         getDataFolder().mkdirs();
         saveDefaultConfig();
-        tempBanTime = getConfig().getInt("lives.banTime");
+        if(getConfig().getString("lives.banTimeType").equalsIgnoreCase("hours")){
+            tempBanTime = getConfig().getInt("lives.banTime") * 60;
+        } else if(getConfig().getString("lives.banTimeType").equalsIgnoreCase("minutes")) {
+            tempBanTime = getConfig().getInt("lives.banTime");
+        } else {
+            getLogger().severe("Ban Time Type is not supported!");
+            getServer().getPluginManager().disablePlugin(this);
+        }
         startLives = getConfig().getInt("lives.firstLives");
         getLogger().info("Settings loaded!");
     }
@@ -72,8 +98,8 @@ public class UDBPlugin extends JavaPlugin{
                 String operation = args[0];
                 if(operation.equalsIgnoreCase("help")){
                     displayHelp(sender);
-                } else if(operation.equalsIgnoreCase("setlives")){
-                    if(sender.hasPermission("udb.setlives")) {
+                } else if(operation.equalsIgnoreCase("setlives")) {
+                    if (sender.hasPermission("udb.setlives")) {
                         if (args.length > 1) {
                             OfflinePlayer player = getServer().getOfflinePlayer(args[1]);
                             if (db.isInDatabase(player)) {
@@ -90,13 +116,30 @@ public class UDBPlugin extends JavaPlugin{
                             sendMessage(sender, "Usage: /udb setlives [player] [lives]");
                         }
                     } else {
-                        sendMessage(sender, ChatColor.RED+"You must have the udb.setlives permission.");
+                        sendMessage(sender, ChatColor.RED + "You must have the udb.setlives permission.");
+                    }
+                } else if(operation.equalsIgnoreCase("save")) {
+                    if(sender.hasPermission("udb.db.save")) {
+                        sendMessage(sender, "Saving database...");
+                        db.saveAll();
+                        sendMessage(sender, "Save complete.");
+                    } else {
+                        sendMessage(sender, ChatColor.RED + "You must have the udb.db.save permission.");
+                    }
+                } else if(operation.equalsIgnoreCase("reload")){
+                    if(sender.hasPermission("udb.db.reload")) {
+                        sendMessage(sender, "Reloading database (All changes will be lost!)");
+                        db = null;
+                        db = PlayerDatabase.loadDatabase(new File(getDataFolder().getAbsolutePath()+File.separator+"playerDB"), this);
+                        sendMessage(sender, "Load complete.");
+                    } else {
+                        sendMessage(sender, ChatColor.RED + "You must have the udb.db.save permission.");
                     }
                 } else {
                     sendMessage(sender, "Usage: /udb [operation]");
                 }
             } catch(ArrayIndexOutOfBoundsException e){
-                sendMessage(sender, "UDB Version "+VERSION);
+                sendMessage(sender, "UDB Version "+VERSION+", written by "+ChatColor.GREEN+"jython234.");
                 sendMessage(sender, "Report bugs at: https://github.com/jython234/UDB/issues");
                 sendMessage(sender, "Type /udb help for a list of commands.");
                 if(sender instanceof Player){
@@ -121,6 +164,10 @@ public class UDBPlugin extends JavaPlugin{
 
     public void sendMessage(CommandSender sendTo, String message){
         sendTo.sendMessage(ChatColor.GOLD+"["+ChatColor.AQUA+"UDB"+ChatColor.GOLD+"] "+ChatColor.YELLOW+message);
+    }
+
+    public boolean supportsVault(){
+        return (economy != null) && (chat != null);
     }
 
     public PlayerDatabase getPlayerDatabase(){

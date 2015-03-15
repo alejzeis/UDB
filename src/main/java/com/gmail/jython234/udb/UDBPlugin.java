@@ -18,7 +18,7 @@ import java.io.IOException;
  * UDB Plugin Main class.
  */
 public class UDBPlugin extends JavaPlugin{
-    public final static String VERSION = "1.0-BETA_BUILD";
+    public final static String VERSION = "1.1-SNAPSHOT";
     private int tempBanTime; //Temp ban time is in minutes
     private int startLives; //Amount of lives new players start with.
 
@@ -118,6 +118,26 @@ public class UDBPlugin extends JavaPlugin{
                     } else {
                         sendMessage(sender, ChatColor.RED + "You must have the udb.setlives permission.");
                     }
+                } else if(operation.equalsIgnoreCase("unban") || operation.equalsIgnoreCase("revive")){
+                    if(args.length > 1){
+                        if(sender.hasPermission("udb.unban")){
+                            OfflinePlayer player = getServer().getOfflinePlayer(args[1]);
+                            if(db.isInDatabase(player)){
+                                PlayerDatabase.PlayerData data = db.getDataByUUID(player.getUniqueId().toString());
+                                data.setBanned(false);
+                                data.setLives(1);
+                                data.save();
+
+                                sendMessage(sender, "Unbanned user "+player.getName()+"/"+player.getUniqueId().toString()+" and set lives to 1.");
+                            } else {
+                                sendMessage(sender, ChatColor.RED+args[1]+" is not in UDB's database.");
+                            }
+                        } else {
+                            sendMessage(sender, ChatColor.RED+"You must have the udb.unban permission!");
+                        }
+                    } else {
+                        sendMessage(sender, "Usage: /udb unban [player] or /udb revive [player]");
+                    }
                 } else if(operation.equalsIgnoreCase("save")) {
                     if(sender.hasPermission("udb.db.save")) {
                         sendMessage(sender, "Saving database...");
@@ -158,6 +178,7 @@ public class UDBPlugin extends JavaPlugin{
     private void displayHelp(CommandSender sender) {
         sendMessage(sender, "/udb - Root command for UDB.");
         sendMessage(sender, "/udb setlives - Set a player's lives.");
+        sendMessage(sender, "/udb unban - Unban a player.");
         sendMessage(sender, "/udb bypass - Allows you to bypass banning.");
         sendMessage(sender, "Please report bugs at: https://github.com/jython234/UDB/issues");
     }

@@ -1,6 +1,7 @@
 name: UDB
 main: com.gmail.jython234.udb.UDBPlugin
 version: 1.1-SNAPSHOT
+depend: [Vault]
 
 commands:
   udb:
@@ -9,6 +10,13 @@ commands:
     permission: udb.udb
     permission-message: "You don't have the permission udb.udb"
 
+  udb-db:
+    description: This is the database command for UDB.
+    usage: /udb-db [operation]
+    permission: udb.db.manage
+    aliases: [db]
+    permission-message: "You do not have the permission udb.db.manage"
+
 permissions:
   udb.*:
     description: Gives access to all UDB commands and features.
@@ -16,6 +24,15 @@ permissions:
       udb.udb: true
       udb.setlives: true
       udb.bypass: true
+      udb.unban: true
+      udb.db.*: true
+
+  udb.db.*:
+    description: Gives access to all UDB-DB features.
+    children:
+      udb.db.save: true
+      udb.db.reload: true
+      udb.db.manage: true
 
   udb.udb:
     description: Allows you to use the root UDB command.
@@ -39,4 +56,8 @@ permissions:
 
   udb.db.reload:
     description: Allows you to re-load the UDB database (discards recent changes).
+    default: op
+
+  udb.db.manage:
+    description: Manage the UDB database.
     default: op

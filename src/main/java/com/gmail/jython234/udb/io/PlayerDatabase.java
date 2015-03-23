@@ -1,10 +1,14 @@
 package com.gmail.jython234.udb.io;
 
 import com.gmail.jython234.udb.UDBPlugin;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.command.CommandSender;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Main database class for storing Player data.
@@ -51,6 +55,33 @@ public class PlayerDatabase {
         for(PlayerData pd: data.values()){
             pd.save();
         }
+    }
+
+    public void displayInfo(CommandSender sender){
+        List<File> files = listValidFiles();
+        plugin.sendMessage(sender, "The database has "+ ChatColor.GREEN+files.size()+" valid database files.");
+        plugin.sendMessage(sender, "Use /udb-db delete [file] to delete data files.");
+        plugin.sendMessage(sender, "Use /udb save to save or /udb reload to reload.");
+        plugin.sendMessage(sender, "Dump data for a player: /udb-db dump [player]");
+    }
+
+    public void dumpData(CommandSender sender, PlayerData data){
+        plugin.sendMessage(sender, "Database dump for "+ChatColor.GREEN+data.getUUID()+".pdb");
+        plugin.sendMessage(sender, "Lives: "+ChatColor.GREEN+data.getLives());
+        plugin.sendMessage(sender, "isBanned: "+ChatColor.GREEN+Boolean.toString(data.isBanned()));
+        plugin.sendMessage(sender, "Ban time: "+ChatColor.GREEN+data.getBanTime());
+        plugin.sendMessage(sender, "Survival Record: "+ChatColor.GREEN+data.printSurvivalRecord());
+        plugin.sendMessage(sender, "End Dump.");
+    }
+
+    public List<File> listValidFiles(){
+        ArrayList<File> validFiles = new ArrayList<File>();
+        for(File file: dir.listFiles()){
+            if(file.getName().endsWith(".pdb")){
+                validFiles.add(file);
+            }
+        }
+        return validFiles;
     }
 
     public boolean isInDatabase(OfflinePlayer player){
@@ -166,7 +197,7 @@ public class PlayerDatabase {
 
             min = min - (hours * 60);
             hours = hours - (days * 24);
-            days = days - (weeks / 7);
+            days = days - (weeks * 7);
 
             return weeks +" weeks, "+days+" days, "+hours+" hours, "+min+" minutes";
         }

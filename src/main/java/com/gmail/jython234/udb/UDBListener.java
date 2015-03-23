@@ -16,6 +16,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Plugin Listener for events.
@@ -45,7 +46,7 @@ public class UDBListener implements Listener{
                     int hourDiff = difference / 60;
                     int minDiff = difference - (hourDiff * 60);
                     String diff = hourDiff +" hours, "+minDiff+" minutes.";
-                    e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Your UDB ban is not over yet. You still have: "+difference);
+                    e.disallow(PlayerLoginEvent.Result.KICK_OTHER, "Your UDB ban is not over yet. You still have: "+diff);
                 }
             }
         }
@@ -99,6 +100,18 @@ public class UDBListener implements Listener{
                 plugin.sendMessage(player, "You have lost "+ChatColor.RED+" 1 life!");
                 plugin.sendMessage(player, "You now have "+ChatColor.GREEN+data.getLives()+" lives!");
 
+                if(player.getKiller() instanceof Player){
+                    if((new Random().nextInt(100)) < 25){
+                        plugin.sendMessage(player.getKiller(), "You have gained +1 lives from the kill!");
+                        PlayerDatabase.PlayerData playerData = plugin.getPlayerDatabase().getDataByUUID(player.getKiller().getUniqueId().toString());
+                        playerData.setLives(playerData.getLives() + 1);
+                        plugin.sendMessage(player, "Your killer has gained +1 lives!");
+                    } else {
+                        plugin.sendMessage(player.getKiller(), "You didn't get a life from the kill!");
+                        plugin.sendMessage(player, "Your killer didn't get a life from the kill.");
+                    }
+                }
+
                 if(data.getLives() <= 0){
                     data.setBanned(true);
                     data.setBanTime(System.currentTimeMillis());
@@ -110,7 +123,10 @@ public class UDBListener implements Listener{
                         data.setBanTime(-1);
                         plugin.sendMessage(player, "Banning on this server has been disabled. You're lucky this time...");
                     } else {
-                        player.kickPlayer("You have run out of lives! Ban time on this server is: "+plugin.getTempBanTime()+" hours.");
+                        int hours = plugin.getTempBanTime() / 60;
+                        int minutes = plugin.getTempBanTime() - (hours * 60);
+
+                        player.kickPlayer("You have run out of lives! Ban time on this server is: "+hours+" hours, "+minutes+" minutes.");
                         plugin.getServer().broadcastMessage(ChatColor.GOLD+"["+ChatColor.AQUA+"UDB"+ChatColor.GOLD+"] "+ChatColor.YELLOW+player.getDisplayName()+" has been banned due to 0 lives!");
                     }
                 }

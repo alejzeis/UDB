@@ -93,12 +93,13 @@ public class UDBPlugin extends JavaPlugin{
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String lbl, String[] args){
-        if(lbl.equalsIgnoreCase("udb")){
+        //UDB Commands
+        if(lbl.equalsIgnoreCase("udb")) {
             try {
                 String operation = args[0];
-                if(operation.equalsIgnoreCase("help")){
+                if (operation.equalsIgnoreCase("help")) {
                     displayHelp(sender);
-                } else if(operation.equalsIgnoreCase("setlives")) {
+                } else if (operation.equalsIgnoreCase("setlives")) {
                     if (sender.hasPermission("udb.setlives")) {
                         if (args.length > 1) {
                             OfflinePlayer player = getServer().getOfflinePlayer(args[1]);
@@ -106,6 +107,10 @@ public class UDBPlugin extends JavaPlugin{
                                 try {
                                     db.getDataByUUID(player.getUniqueId().toString()).setLives(Integer.parseInt(args[2]));
                                     sendMessage(sender, "Set " + ChatColor.GREEN + args[1] + "/" + player.getUniqueId().toString() + "'s lives to " + args[2]);
+                                    if (isPlayerOnline(player)) {
+                                        Player player1 = (Player) player;
+                                        sendMessage(player1, "Your lives have been set to " + ChatColor.GREEN + args[2]);
+                                    }
                                 } catch (NumberFormatException e) {
                                     sendMessage(sender, ChatColor.RED + "Please enter a valid Integer.");
                                 }
@@ -118,39 +123,65 @@ public class UDBPlugin extends JavaPlugin{
                     } else {
                         sendMessage(sender, ChatColor.RED + "You must have the udb.setlives permission.");
                     }
-                } else if(operation.equalsIgnoreCase("unban") || operation.equalsIgnoreCase("revive")){
-                    if(args.length > 1){
-                        if(sender.hasPermission("udb.unban")){
+                } else if (operation.equalsIgnoreCase("addlives")) {
+                    if (sender.hasPermission("udb.setlives")) {
+                        if (args.length > 1) {
                             OfflinePlayer player = getServer().getOfflinePlayer(args[1]);
-                            if(db.isInDatabase(player)){
+                            if (db.isInDatabase(player)) {
+                                try {
+                                    PlayerDatabase.PlayerData data = db.getDataByUUID(player.getUniqueId().toString());
+                                    data.setLives((data.getLives() + Integer.parseInt(args[2])));
+                                    sendMessage(sender, "Set " + ChatColor.GREEN + args[1] + "/" + player.getUniqueId().toString() + "'s lives to " + (data.getLives() + Integer.parseInt(args[2])));
+                                    if (isPlayerOnline(player)) {
+                                        Player player1 = (Player) player;
+                                        sendMessage(player1, "Your lives have been set to " + ChatColor.GREEN + (data.getLives() + Integer.parseInt(args[2])));
+                                    }
+                                } catch (NumberFormatException e) {
+                                    sendMessage(sender, ChatColor.RED + "Please enter a valid Integer.");
+                                }
+                            } else {
+                                sendMessage(sender, ChatColor.RED + args[1] + " is not in UDB's database.");
+                            }
+                        } else {
+                            sendMessage(sender, "Usage: /udb setlives [player] [lives]");
+                        }
+                    } else {
+                        sendMessage(sender, ChatColor.RED + "You must have the udb.setlives permission.");
+                    }
+                } else if (operation.equalsIgnoreCase("unban") || operation.equalsIgnoreCase("revive")) {
+                    if (args.length > 1) {
+                        if (sender.hasPermission("udb.unban")) {
+                            OfflinePlayer player = getServer().getOfflinePlayer(args[1]);
+                            if (db.isInDatabase(player)) {
                                 PlayerDatabase.PlayerData data = db.getDataByUUID(player.getUniqueId().toString());
                                 data.setBanned(false);
                                 data.setLives(1);
+                                data.setBanTime(-1);
                                 data.save();
 
-                                sendMessage(sender, "Unbanned user "+player.getName()+"/"+player.getUniqueId().toString()+" and set lives to 1.");
+                                sendMessage(sender, "Unbanned user " + player.getName() + "/" + player.getUniqueId().toString() + " and set lives to 1.");
                             } else {
-                                sendMessage(sender, ChatColor.RED+args[1]+" is not in UDB's database.");
+                                sendMessage(sender, ChatColor.RED + args[1] + " is not in UDB's database.");
                             }
                         } else {
-                            sendMessage(sender, ChatColor.RED+"You must have the udb.unban permission!");
+                            sendMessage(sender, ChatColor.RED + "You must have the udb.unban permission!");
                         }
                     } else {
                         sendMessage(sender, "Usage: /udb unban [player] or /udb revive [player]");
                     }
-                } else if(operation.equalsIgnoreCase("save")) {
-                    if(sender.hasPermission("udb.db.save")) {
+                } else if (operation.equalsIgnoreCase("save")) {
+                    if (sender.hasPermission("udb.db.save")) {
                         sendMessage(sender, "Saving database...");
                         db.saveAll();
                         sendMessage(sender, "Save complete.");
                     } else {
                         sendMessage(sender, ChatColor.RED + "You must have the udb.db.save permission.");
                     }
-                } else if(operation.equalsIgnoreCase("reload")){
-                    if(sender.hasPermission("udb.db.reload")) {
+                } else if (operation.equalsIgnoreCase("reload")) {
+                    if (sender.hasPermission("udb.db.reload")) {
                         sendMessage(sender, "Reloading database (All changes will be lost!)");
                         db = null;
-                        db = PlayerDatabase.loadDatabase(new File(getDataFolder().getAbsolutePath()+File.separator+"playerDB"), this);
+                        db = PlayerDatabase.loadDatabase(new File(getDataFolder().getAbsolutePath() + File.separator + "playerDB"), this);
                         sendMessage(sender, "Load complete.");
                     } else {
                         sendMessage(sender, ChatColor.RED + "You must have the udb.db.save permission.");
@@ -158,18 +189,42 @@ public class UDBPlugin extends JavaPlugin{
                 } else {
                     sendMessage(sender, "Usage: /udb [operation]");
                 }
-            } catch(ArrayIndexOutOfBoundsException e){
-                sendMessage(sender, "UDB Version "+VERSION+", written by "+ChatColor.GREEN+"jython234.");
+            } catch (ArrayIndexOutOfBoundsException e) {
+                sendMessage(sender, "UDB Version " + VERSION + ", written by " + ChatColor.GREEN + "jython234.");
                 sendMessage(sender, "Report bugs at: https://github.com/jython234/UDB/issues");
                 sendMessage(sender, "Type /udb help for a list of commands.");
-                if(sender instanceof Player){
+                if (sender instanceof Player) {
                     Player player = (Player) sender;
-                    sendMessage(player, "You have "+ChatColor.GREEN+db.getDataByUUID(player.getUniqueId().toString()).getLives()+" lives.");
-                    sendMessage(player, "Your survival record is "+ChatColor.GREEN+db.getDataByUUID(player.getUniqueId().toString()).printSurvivalRecord());
+                    sendMessage(player, "You have " + ChatColor.GREEN + db.getDataByUUID(player.getUniqueId().toString()).getLives() + " lives.");
+                    sendMessage(player, "Your survival record is " + ChatColor.GREEN + db.getDataByUUID(player.getUniqueId().toString()).printSurvivalRecord());
                 }
             } finally {
                 return true;
             }
+        //UDB-DB commands
+        } else if(lbl.equalsIgnoreCase("udb-db") || lbl.equalsIgnoreCase("db")){
+            if(sender.hasPermission("udb.db.manage")) {
+                try {
+                    String operation = args[0];
+                    if(operation.equalsIgnoreCase("dump")){
+                        if(args.length > 0){
+                            OfflinePlayer player = getServer().getOfflinePlayer(args[1]);
+                            if(db.isInDatabase(player)){
+                                db.dumpData(sender, db.getDataByUUID(player.getUniqueId().toString()));
+                            } else {
+                                sendMessage(sender, player.getName()+" is not in the UDB database.");
+                            }
+                        } else {
+                            sendMessage(sender, "Usage: /udb-db dump [player]");
+                        }
+                    }
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    db.displayInfo(sender);
+                }
+            } else {
+                sendMessage(sender, ChatColor.RED+"You don't have the udb.db.manage permission!");
+            }
+            return true;
         } else {
             return false;
         }
@@ -185,6 +240,15 @@ public class UDBPlugin extends JavaPlugin{
 
     public void sendMessage(CommandSender sendTo, String message){
         sendTo.sendMessage(ChatColor.GOLD+"["+ChatColor.AQUA+"UDB"+ChatColor.GOLD+"] "+ChatColor.YELLOW+message);
+    }
+
+    public boolean isPlayerOnline(OfflinePlayer player){
+        for(Player onlinePlayer: getServer().getOnlinePlayers()){
+            if(onlinePlayer.getUniqueId().toString().equals(player.getUniqueId().toString())){
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean supportsVault(){

@@ -18,7 +18,7 @@ import java.io.IOException;
  * UDB Plugin Main class.
  */
 public class UDBPlugin extends JavaPlugin{
-    public final static String VERSION = "1.1-SNAPSHOT";
+    public final static String VERSION = "1.1.2-RC1";
     private int tempBanTime; //Temp ban time is in minutes
     private int startLives; //Amount of lives new players start with.
 
@@ -185,6 +185,51 @@ public class UDBPlugin extends JavaPlugin{
                         sendMessage(sender, "Load complete.");
                     } else {
                         sendMessage(sender, ChatColor.RED + "You must have the udb.db.save permission.");
+                    }
+                } else if(operation.equalsIgnoreCase("bypass")) {
+                    if (sender.hasPermission("udb.bypass")) {
+                        if (sender instanceof Player) {
+                            Player player = (Player) sender;
+                            if (db.isInDatabase(player)) {
+                                PlayerDatabase.PlayerData data = db.getDataByUUID(player.getUniqueId().toString());
+                                if (data.isBypassing()) {
+                                    data.setBypassing(false);
+                                    sendMessage(player, "You are not bypassing anymore.");
+                                } else {
+                                    data.setBypassing(true);
+                                    sendMessage(player, "You are now bypassing.");
+                                }
+                            } else {
+                                sendMessage(player, "You are not in the database (try reconnecting).");
+                            }
+                        } else {
+                            sendMessage(sender, "This command can only be used as a player.");
+                        }
+                    } else {
+                        sendMessage(sender, "You do not have the udb.bypass permission.");
+                    }
+                } else if(operation.equalsIgnoreCase("whois")){
+                    if(args.length > 0){
+                        OfflinePlayer player = getServer().getOfflinePlayer(args[1]);
+                        if(player != null){
+                            if(db.isInDatabase(player)) {
+                                PlayerDatabase.PlayerData data = db.getDataByUUID(player.getUniqueId().toString());
+                                sendMessage(sender, "WHOIS: "+args[1]);
+                                sendMessage(sender, "IsOnline: "+isPlayerOnline(player));
+                                if(isPlayerOnline(player)) {
+                                    sendMessage(sender, "IP: " +getServer().getPlayer(player.getUniqueId().toString()).getAddress().getHostName());
+                                }
+                                sendMessage(sender, "Lives: "+data.getLives());
+                                sendMessage(sender, "Ban time: "+data.getBanTime());
+                                sendMessage(sender, "Survival Record: "+data.printSurvivalRecord());
+                            } else {
+                                sendMessage(sender, args[1]+" is not in the database.");
+                            }
+                        } else {
+                            sendMessage(sender, args[1]+" has never been on this server.");
+                        }
+                    } else {
+                        sendMessage(sender, "Usage: /udb whois [player]");
                     }
                 } else {
                     sendMessage(sender, "Usage: /udb [operation]");

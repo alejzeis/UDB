@@ -117,6 +117,7 @@ public class PlayerDatabase {
         private boolean isBanned;
         private long banTime;
         private String survivalRecord;
+        private boolean isBypassing = false;
 
         public PlayerData(File file) { this.file = file; }
 
@@ -218,5 +219,12 @@ public class PlayerDatabase {
             out.close();
         }
 
+        public boolean isBypassing() {
+            return isBypassing;
+        }
+
+        public void setBypassing(boolean isBypassing) {
+            this.isBypassing = isBypassing;
+        }
     }
 }

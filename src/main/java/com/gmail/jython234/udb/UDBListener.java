@@ -94,40 +94,47 @@ public class UDBListener implements Listener{
             Player player = e.getEntity();
             if (plugin.getPlayerDatabase().isInDatabase(player)) {
                 PlayerDatabase.PlayerData data = plugin.getPlayerDatabase().getDataByUUID(player.getUniqueId().toString());
-                int oldLives = data.getLives();
-                data.setLives(oldLives - 1);
+                if(!data.isBypassing()) {
+                    int oldLives = data.getLives();
+                    data.setLives(oldLives - 1);
 
-                plugin.sendMessage(player, "You have lost "+ChatColor.RED+" 1 life!");
-                plugin.sendMessage(player, "You now have "+ChatColor.GREEN+data.getLives()+" lives!");
+                    plugin.sendMessage(player, "You have lost " + ChatColor.RED + " 1 life!");
+                    plugin.sendMessage(player, "You now have " + ChatColor.GREEN + data.getLives() + " lives!");
 
-                if(player.getKiller() instanceof Player){
-                    if((new Random().nextInt(100)) < 25){
-                        plugin.sendMessage(player.getKiller(), "You have gained +1 lives from the kill!");
-                        PlayerDatabase.PlayerData playerData = plugin.getPlayerDatabase().getDataByUUID(player.getKiller().getUniqueId().toString());
-                        playerData.setLives(playerData.getLives() + 1);
-                        plugin.sendMessage(player, "Your killer has gained +1 lives!");
-                    } else {
-                        plugin.sendMessage(player.getKiller(), "You didn't get a life from the kill!");
-                        plugin.sendMessage(player, "Your killer didn't get a life from the kill.");
+                    if (player.getKiller() instanceof Player) {
+                        if ((new Random().nextInt(100)) < 25) {
+                            plugin.sendMessage(player.getKiller(), "You have gained +1 lives from the kill!");
+                            PlayerDatabase.PlayerData playerData = plugin.getPlayerDatabase().getDataByUUID(player.getKiller().getUniqueId().toString());
+                            playerData.setLives(playerData.getLives() + 1);
+                            plugin.sendMessage(player, "Your killer has gained +1 lives!");
+                        } else {
+                            plugin.sendMessage(player.getKiller(), "You didn't get a life from the kill!");
+                            plugin.sendMessage(player, "Your killer didn't get a life from the kill.");
+                        }
                     }
-                }
 
-                if(data.getLives() <= 0){
-                    data.setBanned(true);
-                    data.setBanTime(System.currentTimeMillis());
-                    if(plugin.getTempBanTime() == 0){ //Permaban
-                        player.kickPlayer("You have run out of lives! Ban time on this server is: permanent.");
-                        plugin.getServer().broadcastMessage(ChatColor.GOLD+"["+ChatColor.AQUA+"UDB"+ChatColor.GOLD+"] "+ChatColor.YELLOW+player.getDisplayName()+" has been banned due to 0 lives!");
-                    } else if(plugin.getTempBanTime() < 0){
-                        data.setBanned(false);
-                        data.setBanTime(-1);
-                        plugin.sendMessage(player, "Banning on this server has been disabled. You're lucky this time...");
-                    } else {
-                        int hours = plugin.getTempBanTime() / 60;
-                        int minutes = plugin.getTempBanTime() - (hours * 60);
+                    if (data.getLives() <= 0) {
+                        data.setBanned(true);
+                        data.setBanTime(System.currentTimeMillis());
+                        if (plugin.getTempBanTime() == 0) { //Permaban
+                            player.kickPlayer("You have run out of lives! Ban time on this server is: permanent.");
+                            plugin.getServer().broadcastMessage(ChatColor.GOLD + "[" + ChatColor.AQUA + "UDB" + ChatColor.GOLD + "] " + ChatColor.YELLOW + player.getDisplayName() + " has been banned due to 0 lives!");
+                        } else if (plugin.getTempBanTime() < 0) {
+                            data.setBanned(false);
+                            data.setBanTime(-1);
+                            plugin.sendMessage(player, "Banning on this server has been disabled. You're lucky this time...");
+                        } else {
+                            int hours = plugin.getTempBanTime() / 60;
+                            int minutes = plugin.getTempBanTime() - (hours * 60);
 
-                        player.kickPlayer("You have run out of lives! Ban time on this server is: "+hours+" hours, "+minutes+" minutes.");
-                        plugin.getServer().broadcastMessage(ChatColor.GOLD+"["+ChatColor.AQUA+"UDB"+ChatColor.GOLD+"] "+ChatColor.YELLOW+player.getDisplayName()+" has been banned due to 0 lives!");
+                            player.kickPlayer("You have run out of lives! Ban time on this server is: " + hours + " hours, " + minutes + " minutes.");
+                            plugin.getServer().broadcastMessage(ChatColor.GOLD + "[" + ChatColor.AQUA + "UDB" + ChatColor.GOLD + "] " + ChatColor.YELLOW + player.getDisplayName() + " has been banned due to 0 lives!");
+                        }
+                    }
+                } else {
+                    plugin.sendMessage(player, "You did not lose a life: bypass mode is ON");
+                    if(player.getKiller() instanceof Player){
+                        plugin.sendMessage(player.getKiller(), "The player you have killed has bypass mode ON");
                     }
                 }
             }
